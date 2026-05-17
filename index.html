@@ -65,7 +65,7 @@
         }
         
         .header-title {
-            font-size: 14px;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 1px;
             white-space: nowrap;
@@ -84,7 +84,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 80px 60px;
             position: relative;
             min-height: 0;
         }
@@ -103,7 +103,7 @@
         
         .duration-select {
             font-family: 'Press Start 2P', cursive;
-            font-size: 12px;
+            font-size: 10px;
             padding: 12px 16px;
             border: 3px solid #000;
             background: white;
@@ -112,7 +112,7 @@
         
         .control-btn {
             font-family: 'Press Start 2P', cursive;
-            font-size: 12px;
+            font-size: 10px;
             padding: 12px 24px;
             border: 3px solid #000;
             background: white;
@@ -183,7 +183,7 @@
             background: white;
             border: 3px solid #000;
             padding: 12px 24px;
-            font-size: 14px;
+            font-size: 12px;
         }
         
         .timer-section {
@@ -197,7 +197,7 @@
             align-items: center;
             justify-content: center;
             padding: 40px;
-            font-size: 72px;
+            font-size: 57px;
             letter-spacing: 8px;
         }
         
@@ -271,13 +271,13 @@
         }
         
         .food-name {
-            font-size: 14px;
+            font-size: 12px;
             text-transform: uppercase;
             padding-left: 8px;
         }
         
         .food-count {
-            font-size: 16px;
+            font-size: 14px;
             color: #999;
             padding-right: 8px;
         }
@@ -299,12 +299,133 @@
         }
         
         .stat-label {
-            font-size: 12px;
+            font-size: 10px;
             text-transform: uppercase;
         }
         
         .stat-value {
-            font-size: 14px;
+            font-size: 12px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                max-height: none;
+            }
+            
+            .header {
+                padding: 12px 16px;
+            }
+            
+            .header-title {
+                font-size: 11px;
+            }
+            
+            .header-dot {
+                width: 10px;
+                height: 10px;
+            }
+            
+            .frog {
+                width: 140px;
+            }
+            
+            .speech-bubble {
+                font-size: 11px;
+                padding: 8px 16px;
+                bottom: -40px;
+            }
+            
+            .controls-section {
+                padding: 12px;
+                gap: 8px;
+            }
+            
+            .duration-select,
+            .control-btn {
+                font-size: 10px;
+                padding: 10px 16px;
+            }
+            
+            .timer-display {
+                padding: 24px;
+                font-size: 48px;
+            }
+            
+            .food-item {
+                grid-template-columns: 80px 1fr auto;
+                padding: 12px 16px;
+            }
+            
+            .food-icon {
+                font-size: 28px;
+            }
+            
+            .food-name {
+                font-size: 11px;
+            }
+            
+            .food-count {
+                font-size: 14px;
+            }
+            
+            .stat-row {
+                padding: 12px 16px;
+            }
+            
+            .stat-label {
+                font-size: 10px;
+            }
+            
+            .stat-value {
+                font-size: 12px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .header-title {
+                font-size: 9px;
+            }
+            
+            .frog {
+                width: 120px;
+            }
+            
+            .speech-bubble {
+                font-size: 9px;
+                padding: 6px 12px;
+            }
+            
+            .duration-select,
+            .control-btn {
+                font-size: 9px;
+                padding: 8px 12px;
+            }
+            
+            .timer-display {
+                padding: 20px;
+                font-size: 36px;
+                letter-spacing: 4px;
+            }
+            
+            .food-item {
+                grid-template-columns: 60px 1fr auto;
+                padding: 10px 12px;
+            }
+            
+            .food-icon {
+                font-size: 24px;
+            }
+            
+            .food-name {
+                font-size: 9px;
+            }
         }
     </style>
 </head>
@@ -596,6 +717,7 @@
                         foodElement.draggable = true;
                         foodElement.style.cursor = 'grab';
                         
+                        // Desktop drag events
                         foodElement.addEventListener('dragstart', (e) => {
                             e.dataTransfer.setData('foodId', item.id);
                             foodElement.style.opacity = '0.5';
@@ -603,6 +725,31 @@
                         
                         foodElement.addEventListener('dragend', (e) => {
                             foodElement.style.opacity = '1';
+                        });
+                        
+                        // Mobile touch events
+                        foodElement.addEventListener('touchstart', (e) => {
+                            foodElement.style.opacity = '0.5';
+                            foodElement.dataset.foodId = item.id;
+                        });
+                        
+                        foodElement.addEventListener('touchend', (e) => {
+                            foodElement.style.opacity = '1';
+                            
+                            // Check if touch ended over frog
+                            const touch = e.changedTouches[0];
+                            const frogRect = this.frogContainer.getBoundingClientRect();
+                            
+                            if (
+                                touch.clientX >= frogRect.left &&
+                                touch.clientX <= frogRect.right &&
+                                touch.clientY >= frogRect.top &&
+                                touch.clientY <= frogRect.bottom
+                            ) {
+                                if (this.waitingForFood) {
+                                    this.onFoodDropped(item.id);
+                                }
+                            }
                         });
                     }
                 });
