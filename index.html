@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frogodoro - Focus Timer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: #f5d5d5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            max-height: 100vh;
+        }
+        
+        .panel {
+            background: #f5e6e6;
+            border: 4px solid #000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            border-bottom: 4px solid #000;
+            flex-shrink: 0;
+        }
+        
+        .header-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        
+        .header-dot.green {
+            background: #7cb342;
+        }
+        
+        .header-dot.pink {
+            background: #ffb3ba;
+        }
+        
+        .header-title {
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+        
+        .header-line {
+            flex: 1;
+            height: 2px;
+            background: #000;
+            margin-left: 12px;
+        }
+        
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            min-height: 0;
+        }
+        
+        .controls-section {
+            width: 100%;
+            border-top: 4px solid #000;
+            padding: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        
+        .duration-select {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            padding: 12px 16px;
+            border: 3px solid #000;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .control-btn {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 12px;
+            padding: 12px 24px;
+            border: 3px solid #000;
+            background: white;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: background 0.2s;
+        }
+        
+        .control-btn:hover {
+            background: #e0e0e0;
+        }
+        
+        .control-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .frog-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transition: background-color 0.3s;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .frog {
+            width: 200px;
+            height: auto;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+        
+        .frog.sleeping {
+            animation: breathe 2.5s ease-in-out infinite;
+        }
+        
+        .frog.awake {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .frog.excited {
+            animation: bounce-excited 0.5s ease-in-out infinite;
+        }
+        
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes bounce-excited {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            25% { transform: translateY(-15px) scale(1.1); }
+            50% { transform: translateY(0px) scale(1.05); }
+            75% { transform: translateY(-8px) scale(1.08); }
+        }
+        
+        .speech-bubble {
+            position: absolute;
+            bottom: -50px;
+            background: white;
+            border: 3px solid #000;
+            padding: 12px 24px;
+            font-size: 14px;
+        }
+        
+        .timer-section {
+            width: 100%;
+            border-top: 4px solid #000;
+            flex-shrink: 0;
+        }
+        
+        .timer-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            font-size: 72px;
+            letter-spacing: 8px;
+        }
+        
+        .start-button {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 20px;
+            padding: 40px 60px;
+            border: none;
+            background: #d4e89e;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+        
+        .start-button:hover {
+            background: #c0d68a;
+        }
+        
+        .start-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .food-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        
+        .food-list {
+            flex: 1;
+            overflow-y: auto;
+            border-bottom: 4px solid #000;
+        }
+        
+        .food-list::-webkit-scrollbar {
+            width: 12px;
+        }
+        
+        .food-list::-webkit-scrollbar-track {
+            background: #f5e6e6;
+        }
+        
+        .food-list::-webkit-scrollbar-thumb {
+            background: #ffb3ba;
+            border: 2px solid #000;
+        }
+        
+        .food-item {
+            display: grid;
+            grid-template-columns: 100px 1fr auto;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 2px solid #000;
+            background: #f5e6e6;
+            transition: background 0.2s;
+        }
+        
+        .food-item:last-child {
+            border-bottom: none;
+        }
+        
+        .food-item:hover {
+            background: #ffe6e6;
+        }
+        
+        .food-icon {
+            font-size: 32px;
+            text-align: center;
+        }
+        
+        .food-name {
+            font-size: 14px;
+            text-transform: uppercase;
+            padding-left: 8px;
+        }
+        
+        .food-count {
+            font-size: 16px;
+            color: #999;
+            padding-right: 8px;
+        }
+        
+        .stats-section {
+            flex-shrink: 0;
+        }
+        
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 2px solid #000;
+        }
+        
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .stat-value {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="panel">
+            <div class="header">
+                <div class="header-dot green"></div>
+                <div class="header-title">Focus Time</div>
+                <div class="header-line"></div>
+            </div>
+            
+            <div class="main-content">
+                <div class="frog-container" id="frogContainer">
+                    <img src="frog-sleep.png" alt="Frog" class="frog sleeping" id="frogImage">
+                </div>
+            </div>
+            
+            <div class="controls-section">
+                <select class="duration-select" id="durationSelect">
+                    <option value="5">5 min</option>
+                    <option value="10">10 min</option>
+                    <option value="15">15 min</option>
+                    <option value="20">20 min</option>
+                    <option value="25" selected>25 min</option>
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">60 min</option>
+                    <option value="custom">Custom</option>
+                </select>
+                <input type="number" class="duration-select" id="customInput" placeholder="Minutes" min="1" max="240" style="display: none;">
+                <button class="control-btn" id="startBtn">Start</button>
+                <button class="control-btn" id="pauseBtn">Pause</button>
+                <button class="control-btn" id="resetBtn">Reset</button>
+            </div>
+            
+            <div class="timer-section">
+                <div class="timer-display" id="timerDisplay">25:00</div>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <div class="food-section">
+                <div class="header">
+                    <div class="header-dot pink"></div>
+                    <div class="header-title">Food</div>
+                    <div class="header-line"></div>
+                </div>
+                
+                <div class="food-list" id="foodList"></div>
+            </div>
+            
+            <div class="stats-section">
+                <div class="stat-row">
+                    <div class="stat-label">Total Eaten</div>
+                    <div class="stat-value" id="totalEaten">0</div>
+                </div>
+                <div class="stat-row">
+                    <div class="stat-label">Total Focus</div>
+                    <div class="stat-value" id="totalFocus">0 mins</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const FOOD_ITEMS = [
+            { id: 'cookie', icon: '🍪', name: 'Cookie', unlockAt: 0 },
+            { id: 'apple', icon: '🍎', name: 'Apple', unlockAt: 0 },
+            { id: 'pizza', icon: '🍕', name: 'Pizza', unlockAt: 1 },
+            { id: 'donut', icon: '🍩', name: 'Donut', unlockAt: 2 },
+            { id: 'cake', icon: '🍰', name: 'Cake', unlockAt: 3 },
+            { id: 'icecream', icon: '🍦', name: 'Ice Cream', unlockAt: 5 },
+            { id: 'sushi', icon: '🍣', name: 'Sushi', unlockAt: 7 },
+            { id: 'burger', icon: '🍔', name: 'Burger', unlockAt: 10 },
+            { id: 'taco', icon: '🌮', name: 'Taco', unlockAt: 15 },
+            { id: 'ramen', icon: '🍜', name: 'Ramen', unlockAt: 20 }
+        ];
+
+        class FrogodoroTimer {
+            constructor() {
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.durationSelect = document.getElementById('durationSelect');
+                this.customInput = document.getElementById('customInput');
+                this.frogContainer = document.getElementById('frogContainer');
+                this.frogImage = document.getElementById('frogImage');
+                this.foodList = document.getElementById('foodList');
+                
+                this.isRunning = false;
+                this.isPaused = false;
+                this.timeLeft = 25 * 60;
+                this.focusDuration = 25 * 60;
+                this.interval = null;
+                this.initialTime = 25 * 60;
+                this.frogState = 'sleeping';
+                this.waitingForFood = false;
+                
+                this.stats = {
+                    totalSessions: 0,
+                    totalFocusMinutes: 0,
+                    foodCounts: {}
+                };
+                
+                this.loadStats();
+                this.initializeFoodList();
+                this.updateDisplay();
+                this.updateStats();
+                this.attachEventListeners();
+            }
+            
+            async loadStats() {
+                try {
+                    const result = await window.storage.get('frogodoro-stats');
+                    if (result && result.value) {
+                        this.stats = JSON.parse(result.value);
+                    }
+                } catch (error) {
+                    console.log('Starting fresh');
+                }
+            }
+            
+            async saveStats() {
+                try {
+                    await window.storage.set('frogodoro-stats', JSON.stringify(this.stats));
+                } catch (error) {
+                    console.error('Save failed:', error);
+                }
+            }
+            
+            initializeFoodList() {
+                FOOD_ITEMS.forEach(item => {
+                    const foodItem = document.createElement('div');
+                    foodItem.className = 'food-item';
+                    foodItem.id = `food-${item.id}`;
+                    
+                    const count = this.stats.foodCounts[item.id] || 0;
+                    
+                    foodItem.innerHTML = `
+                        <div class="food-icon">${item.icon}</div>
+                        <div class="food-name">${item.name}</div>
+                        <div class="food-count">${count}</div>
+                    `;
+                    
+                    this.foodList.appendChild(foodItem);
+                });
+            }
+            
+            attachEventListeners() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                
+                this.durationSelect.addEventListener('change', (e) => {
+                    if (e.target.value === 'custom') {
+                        this.customInput.style.display = 'inline-block';
+                        this.customInput.focus();
+                    } else {
+                        this.customInput.style.display = 'none';
+                        this.focusDuration = parseInt(e.target.value) * 60;
+                        if (!this.isRunning && !this.isPaused) {
+                            this.timeLeft = this.focusDuration;
+                            this.updateDisplay();
+                        }
+                    }
+                });
+                
+                this.customInput.addEventListener('change', (e) => {
+                    const customMinutes = parseInt(e.target.value);
+                    if (customMinutes && customMinutes > 0) {
+                        this.focusDuration = customMinutes * 60;
+                        if (!this.isRunning && !this.isPaused) {
+                            this.timeLeft = this.focusDuration;
+                            this.updateDisplay();
+                        }
+                    }
+                });
+            }
+            
+            start() {
+                if (!this.isRunning && !this.waitingForFood) {
+                    this.isRunning = true;
+                    this.isPaused = false;
+                    this.startBtn.textContent = 'Running...';
+                    this.startBtn.disabled = true;
+                    this.pauseBtn.disabled = false;
+                    this.durationSelect.disabled = true;
+                    this.customInput.disabled = true;
+                    
+                    if (this.timeLeft === this.focusDuration) {
+                        this.initialTime = this.timeLeft;
+                    }
+                    
+                    this.updateFrogState('sleeping');
+                    this.showSpeechBubble('zzzz...');
+                    
+                    this.interval = setInterval(() => this.tick(), 1000);
+                }
+            }
+            
+            pause() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    this.isPaused = true;
+                    this.startBtn.textContent = 'Resume';
+                    this.startBtn.disabled = false;
+                    this.pauseBtn.disabled = true;
+                    clearInterval(this.interval);
+                    this.showSpeechBubble('paused...');
+                }
+            }
+            
+            reset() {
+                this.isRunning = false;
+                this.isPaused = false;
+                this.waitingForFood = false;
+                this.timeLeft = this.focusDuration;
+                this.startBtn.textContent = 'Start';
+                this.startBtn.disabled = false;
+                this.pauseBtn.disabled = true;
+                this.durationSelect.disabled = false;
+                this.customInput.disabled = false;
+                clearInterval(this.interval);
+                this.updateDisplay();
+                this.updateFrogState('sleeping');
+                this.removeSpeechBubble();
+                this.disableFoodDragging();
+            }
+            
+            tick() {
+                this.timeLeft--;
+                this.updateDisplay();
+                
+                const elapsed = this.initialTime - this.timeLeft;
+                const progress = elapsed / this.initialTime;
+                
+                let newState = this.frogState;
+                let newSpeech = null;
+                
+                if (progress < 0.5) {
+                    newState = 'sleeping';
+                    newSpeech = 'zzzz...';
+                } else if (progress >= 0.5 && progress < 0.8) {
+                    newState = 'awake';
+                    newSpeech = 'working...';
+                } else if (this.timeLeft <= 300 || progress >= 0.8) {
+                    newState = 'excited';
+                    newSpeech = 'food soon?';
+                }
+                
+                // Only update if state changed
+                if (newState !== this.frogState) {
+                    this.updateFrogState(newState);
+                    if (newSpeech) {
+                        this.showSpeechBubble(newSpeech);
+                    }
+                }
+                
+                if (this.timeLeft <= 10 && this.timeLeft > 0) {
+                    this.playCountdownBeep();
+                }
+                
+                if (this.timeLeft <= 0) {
+                    this.complete();
+                }
+            }
+            
+            complete() {
+                clearInterval(this.interval);
+                this.isRunning = false;
+                this.waitingForFood = true;
+                
+                this.updateFrogState('excited');
+                this.showSpeechBubble('FEED ME!');
+                this.startBtn.textContent = 'Feed Me!';
+                this.startBtn.disabled = true;
+                this.pauseBtn.disabled = true;
+                
+                this.enableFoodDragging();
+            }
+            
+            enableFoodDragging() {
+                // Make ALL food items draggable when timer completes
+                FOOD_ITEMS.forEach(item => {
+                    const foodElement = document.getElementById(`food-${item.id}`);
+                    if (foodElement) {
+                        foodElement.draggable = true;
+                        foodElement.style.cursor = 'grab';
+                        
+                        foodElement.addEventListener('dragstart', (e) => {
+                            e.dataTransfer.setData('foodId', item.id);
+                            foodElement.style.opacity = '0.5';
+                        });
+                        
+                        foodElement.addEventListener('dragend', (e) => {
+                            foodElement.style.opacity = '1';
+                        });
+                    }
+                });
+                
+                this.frogContainer.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    this.frogContainer.style.backgroundColor = 'rgba(124, 179, 66, 0.2)';
+                });
+                
+                this.frogContainer.addEventListener('dragleave', (e) => {
+                    this.frogContainer.style.backgroundColor = 'transparent';
+                });
+                
+                this.frogContainer.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    this.frogContainer.style.backgroundColor = 'transparent';
+                    
+                    if (this.waitingForFood) {
+                        const foodId = e.dataTransfer.getData('foodId');
+                        this.onFoodDropped(foodId);
+                    }
+                });
+            }
+            
+            onFoodDropped(foodId) {
+                this.playEatingSound();
+                
+                this.stats.totalSessions++;
+                this.stats.totalFocusMinutes += Math.floor(this.focusDuration / 60);
+                this.stats.foodCounts[foodId] = (this.stats.foodCounts[foodId] || 0) + 1;
+                
+                const foodElement = document.getElementById(`food-${foodId}`);
+                if (foodElement) {
+                    foodElement.querySelector('.food-count').textContent = this.stats.foodCounts[foodId];
+                }
+                
+                this.saveStats();
+                this.updateStats();
+                
+                this.showSpeechBubble('yum!');
+                
+                this.disableFoodDragging();
+                this.waitingForFood = false;
+                
+                setTimeout(() => {
+                    this.timeLeft = this.focusDuration;
+                    this.startBtn.textContent = 'Start';
+                    this.startBtn.disabled = false;
+                    this.pauseBtn.disabled = true;
+                    this.durationSelect.disabled = false;
+                    this.customInput.disabled = false;
+                    this.updateDisplay();
+                    this.updateFrogState('sleeping');
+                    this.showSpeechBubble('ready!');
+                }, 2000);
+            }
+            
+            disableFoodDragging() {
+                FOOD_ITEMS.forEach(item => {
+                    const foodElement = document.getElementById(`food-${item.id}`);
+                    if (foodElement) {
+                        foodElement.draggable = false;
+                        foodElement.style.cursor = 'default';
+                    }
+                });
+            }
+            
+            playEatingSound() {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const times = [0, 0.15, 0.3];
+                    const frequencies = [400, 500, 600];
+                    
+                    times.forEach((time, i) => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.type = 'square';
+                        oscillator.frequency.value = frequencies[i];
+                        
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + time);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + time + 0.1);
+                        
+                        oscillator.start(audioContext.currentTime + time);
+                        oscillator.stop(audioContext.currentTime + time + 0.1);
+                    });
+                } catch (error) {
+                    console.log('Sound not available');
+                }
+            }
+            
+            updateFrogState(state) {
+                this.frogState = state;
+                this.frogImage.className = `frog ${state}`;
+                
+                if (state === 'sleeping') {
+                    this.frogImage.src = 'frog-sleep.png';
+                } else if (state === 'awake') {
+                    this.frogImage.src = 'frog-awake.png';
+                } else if (state === 'excited') {
+                    this.frogImage.src = 'frog-excited.png';
+                }
+            }
+            
+            updateDisplay() {
+                const minutes = Math.floor(this.timeLeft / 60);
+                const seconds = this.timeLeft % 60;
+                this.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
+            
+            updateStats() {
+                document.getElementById('totalEaten').textContent = 
+                    Object.values(this.stats.foodCounts).reduce((a, b) => a + b, 0);
+                document.getElementById('totalFocus').textContent = 
+                    `${this.stats.totalFocusMinutes} mins`;
+            }
+            
+            showSpeechBubble(text) {
+                this.removeSpeechBubble();
+                const bubble = document.createElement('div');
+                bubble.className = 'speech-bubble';
+                bubble.textContent = text;
+                bubble.id = 'speechBubble';
+                this.frogContainer.appendChild(bubble);
+            }
+            
+            removeSpeechBubble() {
+                const existing = document.getElementById('speechBubble');
+                if (existing) {
+                    existing.remove();
+                }
+            }
+            
+            playCountdownBeep() {
+                try {
+                    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    
+                    oscillator.frequency.value = 1000;
+                    oscillator.type = 'sine';
+                    
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    
+                    oscillator.start(audioContext.currentTime);
+                    oscillator.stop(audioContext.currentTime + 0.1);
+                } catch (error) {
+                    console.log('Audio not available');
+                }
+            }
+        }
+        
+        const timer = new FrogodoroTimer();
+    </script>
+</body>
+</html>
